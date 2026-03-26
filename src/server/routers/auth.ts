@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { baseProcedure, createTRPCRouter } from "../trpc/init";
 import { TRPCError } from "@trpc/server";
 import { headers as getHeaders } from "next/headers";
+import { cookies as getCookies } from "next/headers";
 
 export const authRouter = createTRPCRouter({
   session: baseProcedure.query(async ({ ctx }) => {
@@ -79,6 +80,15 @@ export const authRouter = createTRPCRouter({
           message: "Invalid credentials",
         });
       }
+
+      // Set the auth cookie so subsequent requests are authenticated
+      const cookieStore = await getCookies();
+      cookieStore.set("payload-token", result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        sameSite: "lax",
+      });
 
       return {
         user: result.user,
