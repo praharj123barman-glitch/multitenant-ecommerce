@@ -155,7 +155,8 @@ export function Navbar() {
                               method: "POST",
                               credentials: "include",
                             });
-                            window.location.href = "/";
+                            document.cookie = "payload-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                            window.location.replace("/");
                           }}
                           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
                         >
