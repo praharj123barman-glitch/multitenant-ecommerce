@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTRPC } from "@/trpc/react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { StarRating } from "./StarRating";
 import { BadgeCheck, Loader2, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -43,18 +43,13 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
 
-  const { data: rawStats } = useQuery(
-    trpc.reviews.getStats.queryOptions({ productId })
-  );
+  const { data: rawStats } = trpc.reviews.getStats.useQuery({ productId });
   const stats = rawStats as unknown as ReviewStats | undefined;
 
-  const { data: rawReviews, isLoading: reviewsLoading } = useQuery(
-    trpc.reviews.getByProduct.queryOptions({ productId, limit: 10 })
-  );
+  const { data: rawReviews, isLoading: reviewsLoading } = trpc.reviews.getByProduct.useQuery({ productId, limit: 10 });
   const reviewsData = rawReviews as unknown as ReviewListResult | undefined;
 
-  const createReview = useMutation({
-    ...trpc.reviews.create.mutationOptions(),
+  const createReview = trpc.reviews.create.useMutation({
     onSuccess: () => {
       setShowForm(false);
       setRating(0);

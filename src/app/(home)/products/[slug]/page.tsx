@@ -2,7 +2,6 @@
 
 import { use, useState } from "react";
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useCart } from "@/hooks/use-cart";
 import { ReviewSection } from "@/components/ReviewSection";
@@ -32,9 +31,7 @@ export default function ProductPage({
   const [addedToCart, setAddedToCart] = useState(false);
   const cart = useCart();
 
-  const { data: rawProduct, isLoading } = useQuery(
-    trpc.products.getBySlug.queryOptions({ slug })
-  );
+  const { data: rawProduct, isLoading } = trpc.products.getBySlug.useQuery({ slug });
   const product = rawProduct as unknown as Product | undefined;
 
   if (isLoading) {

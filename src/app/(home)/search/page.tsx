@@ -2,7 +2,6 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import { useState, Suspense } from "react";
 import { Search, SlidersHorizontal, X, Package, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,18 +21,16 @@ function SearchContent() {
   const [searchInput, setSearchInput] = useState(query);
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: rawCategories } = useQuery(trpc.categories.getAll.queryOptions());
+  const { data: rawCategories } = trpc.categories.getAll.useQuery();
   const categoriesList = (rawCategories || []) as unknown as Category[];
 
-  const { data: rawProducts, isLoading: productsLoading } = useQuery(
-    trpc.products.list.queryOptions({
-      search: query || undefined,
-      category: selectedCategory || undefined,
-      sort: sortBy,
-      page: currentPage,
-      limit: 12,
-    })
-  );
+  const { data: rawProducts, isLoading: productsLoading } = trpc.products.list.useQuery({
+    search: query || undefined,
+    category: selectedCategory || undefined,
+    sort: sortBy,
+    page: currentPage,
+    limit: 12,
+  });
   const productsData = rawProducts as unknown as ProductListResult | undefined;
 
   const updateSearch = (updates: Record<string, string>) => {

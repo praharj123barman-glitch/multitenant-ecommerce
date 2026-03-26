@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTRPC } from "@/trpc/react";
-import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -17,8 +16,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const register = useMutation({
-    ...trpc.auth.register.mutationOptions(),
+  const register = trpc.auth.register.useMutation({
     onSuccess: () => {
       router.push("/sign-in");
     },

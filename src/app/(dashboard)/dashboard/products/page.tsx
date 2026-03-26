@@ -1,7 +1,6 @@
 "use client";
 
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Plus, Package, Loader2 } from "lucide-react";
 import type { Product } from "@/types";
@@ -9,9 +8,7 @@ import type { Product } from "@/types";
 export default function DashboardProductsPage() {
   const trpc = useTRPC();
 
-  const { data: rawProducts, isLoading } = useQuery(
-    trpc.products.myProducts.queryOptions()
-  );
+  const { data: rawProducts, isLoading } = trpc.products.myProducts.useQuery();
   const products = (rawProducts || []) as unknown as Product[];
 
   return (

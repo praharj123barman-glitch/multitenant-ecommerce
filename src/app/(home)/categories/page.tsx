@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowRight, Loader2 } from "lucide-react";
 import type { Category } from "@/types";
@@ -29,9 +28,7 @@ const fadeUp = {
 
 export default function CategoriesPage() {
   const trpc = useTRPC();
-  const { data: rawCategories, isLoading } = useQuery(
-    trpc.categories.getAll.queryOptions()
-  );
+  const { data: rawCategories, isLoading } = trpc.categories.getAll.useQuery();
   const categories = (rawCategories || []) as unknown as Category[];
 
   const displayCategories = categories.length > 0 ? categories : fallbackCategories;

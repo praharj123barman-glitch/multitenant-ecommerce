@@ -1,7 +1,6 @@
 "use client";
 
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Package, DollarSign, ShoppingBag, Star, Plus, Loader2 } from "lucide-react";
 import type { Product } from "@/types";
@@ -16,13 +15,10 @@ interface Tenant {
 export default function DashboardPage() {
   const trpc = useTRPC();
 
-  const { data: rawTenant, isLoading: tenantLoading } = useQuery(
-    trpc.tenants.myTenant.queryOptions()
-  );
+  const { data: rawTenant, isLoading: tenantLoading } = trpc.tenants.myTenant.useQuery();
   const tenant = rawTenant as unknown as Tenant | null;
 
-  const { data: rawProducts } = useQuery({
-    ...trpc.products.myProducts.queryOptions(),
+  const { data: rawProducts } = trpc.products.myProducts.useQuery(undefined, {
     enabled: !!tenant,
   });
   const products = (rawProducts || []) as unknown as Product[];

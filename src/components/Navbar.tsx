@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import type { SessionUser } from "@/types";
 import { useCart } from "@/hooks/use-cart";
 import { ShoppingCart, Search, Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
@@ -18,7 +17,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const session = useQuery(trpc.auth.session.queryOptions());
+  const session = trpc.auth.session.useQuery();
   const user = (session.data as unknown as { user: SessionUser | null } | undefined)?.user;
   const cartCount = useCart((s) => s.items.length);
 

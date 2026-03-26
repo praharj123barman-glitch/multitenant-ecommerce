@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Package,
@@ -30,7 +29,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const trpc = useTRPC();
 
-  const { data: rawSession, isLoading } = useQuery(trpc.auth.session.queryOptions());
+  const { data: rawSession, isLoading } = trpc.auth.session.useQuery();
   const user = (rawSession as unknown as { user: SessionUser | null } | undefined)?.user;
 
   if (isLoading) {

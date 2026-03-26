@@ -2,7 +2,6 @@
 
 import { use } from "react";
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Package } from "lucide-react";
 import type { Category } from "@/types";
@@ -15,9 +14,7 @@ export default function CategoryPage({
   const { slug } = use(params);
   const trpc = useTRPC();
 
-  const { data: rawCategory, isLoading } = useQuery(
-    trpc.categories.getBySlug.queryOptions({ slug })
-  );
+  const { data: rawCategory, isLoading } = trpc.categories.getBySlug.useQuery({ slug });
   const category = rawCategory as unknown as Category | null;
 
   if (isLoading) {

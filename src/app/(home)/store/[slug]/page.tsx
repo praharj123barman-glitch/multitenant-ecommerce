@@ -2,7 +2,6 @@
 
 import { use } from "react";
 import { useTRPC } from "@/trpc/react";
-import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -48,16 +47,13 @@ export default function StorefrontPage({
   const { slug } = use(params);
   const trpc = useTRPC();
 
-  const { data: rawTenant, isLoading: tenantLoading } = useQuery(
-    trpc.tenants.getBySlug.queryOptions({ slug })
-  );
+  const { data: rawTenant, isLoading: tenantLoading } = trpc.tenants.getBySlug.useQuery({ slug });
   const tenant = rawTenant as unknown as Tenant | null;
 
-  const { data: rawProducts, isLoading: productsLoading } = useQuery({
-    ...trpc.products.list.queryOptions({
-      tenantId: tenant?.id,
-      limit: 20,
-    }),
+  const { data: rawProducts, isLoading: productsLoading } = trpc.products.list.useQuery({
+    tenantId: tenant?.id,
+    limit: 20,
+  }, {
     enabled: !!tenant?.id,
   });
   const productsData = rawProducts as unknown as ProductListResult | undefined;

@@ -1,7 +1,6 @@
 "use client";
 
 import { useTRPC } from "@/trpc/react";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2, ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
 
 interface Tenant {
@@ -20,31 +19,27 @@ interface ConnectStatus {
 export default function DashboardSettingsPage() {
   const trpc = useTRPC();
 
-  const { data: rawTenant } = useQuery(trpc.tenants.myTenant.queryOptions());
+  const { data: rawTenant } = trpc.tenants.myTenant.useQuery();
   const tenant = rawTenant as unknown as Tenant | null;
 
-  const { data: rawStatus, isLoading: statusLoading } = useQuery({
-    ...trpc.stripe.getConnectStatus.queryOptions(),
+  const { data: rawStatus, isLoading: statusLoading } = trpc.stripe.getConnectStatus.useQuery(undefined, {
     enabled: !!tenant,
   });
   const connectStatus = rawStatus as unknown as ConnectStatus | undefined;
 
-  const createAccount = useMutation({
-    ...trpc.stripe.createConnectAccount.mutationOptions(),
+  const createAccount = trpc.stripe.createConnectAccount.useMutation({
     onSuccess: () => {
       getOnboarding.mutate();
     },
   });
 
-  const getOnboarding = useMutation({
-    ...trpc.stripe.getOnboardingLink.mutationOptions(),
+  const getOnboarding = trpc.stripe.getOnboardingLink.useMutation({
     onSuccess: (data: { url: string }) => {
       window.location.href = data.url;
     },
   });
 
-  const getDashboard = useMutation({
-    ...trpc.stripe.getDashboardLink.mutationOptions(),
+  const getDashboard = trpc.stripe.getDashboardLink.useMutation({
     onSuccess: (data: { url: string }) => {
       window.open(data.url, "_blank");
     },

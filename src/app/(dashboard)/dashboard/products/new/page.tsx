@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTRPC } from "@/trpc/react";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -20,11 +19,10 @@ export default function NewProductPage() {
   const [status, setStatus] = useState<"draft" | "active">("draft");
   const [error, setError] = useState("");
 
-  const { data: rawCategories } = useQuery(trpc.categories.getAll.queryOptions());
+  const { data: rawCategories } = trpc.categories.getAll.useQuery();
   const categories = (rawCategories || []) as unknown as Category[];
 
-  const createProduct = useMutation({
-    ...trpc.products.create.mutationOptions(),
+  const createProduct = trpc.products.create.useMutation({
     onSuccess: () => {
       router.push("/dashboard/products");
     },

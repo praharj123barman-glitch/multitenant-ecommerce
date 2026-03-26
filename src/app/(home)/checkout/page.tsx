@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/hooks/use-cart";
 import { useTRPC } from "@/trpc/react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -25,7 +25,7 @@ export default function CheckoutPage() {
 
   const [checkoutError, setCheckoutError] = useState("");
 
-  const { data: rawSession } = useQuery(trpc.auth.session.queryOptions());
+  const { data: rawSession } = trpc.auth.session.useQuery();
   const user = (rawSession as unknown as { user: SessionUser | null } | undefined)?.user;
 
   const checkout = useMutation({
