@@ -151,11 +151,10 @@ export function Navbar() {
                       <div className="border-t py-1">
                         <button
                           onClick={async () => {
-                            await fetch("/api/users/logout", {
+                            await fetch("/api/logout", {
                               method: "POST",
                               credentials: "include",
                             });
-                            document.cookie = "payload-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                             window.location.replace("/");
                           }}
                           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
