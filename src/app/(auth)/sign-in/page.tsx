@@ -1,34 +1,45 @@
 "use client";
 
 import { useState } from "react";
-import { useTRPC } from "@/trpc/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function SignInPage() {
   const router = useRouter();
-  const trpc = useTRPC();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isPending, setIsPending] = useState(false);
 
-  const login = trpc.auth.login.useMutation({
-    onSuccess: () => {
-      router.push("/");
-      router.refresh();
-    },
-    onError: (err: { message: string }) => {
-      setError(err.message);
-    },
-  });
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    login.mutate({ email, password });
+    setIsPending(true);
+
+    try {
+      const res = await fetch("/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.errors?.[0]?.message || "Invalid credentials");
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -107,10 +118,10 @@ export default function SignInPage() {
 
         <button
           type="submit"
-          disabled={login.isPending}
+          disabled={isPending}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-accent to-accent-dark px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-accent/25 transition-all hover:shadow-lg hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
         >
-          {login.isPending ? (
+          {isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               Signing in...
