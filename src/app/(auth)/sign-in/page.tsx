@@ -20,16 +20,15 @@ export default function SignInPage() {
     setIsPending(true);
 
     try {
-      const res = await fetch("/api/users/login", {
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include",
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setError(data?.errors?.[0]?.message || "Invalid credentials");
+        setError(data?.error || "Invalid credentials");
         return;
       }
 
