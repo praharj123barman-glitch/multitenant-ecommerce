@@ -36,11 +36,11 @@ export default function CheckoutSuccessPage() {
 
         <div className="mt-8 flex flex-col items-center gap-3">
           <Link
-            href="/library"
+            href="/dashboard"
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-dark px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-accent/25 hover:brightness-110"
           >
             <Download className="h-4 w-4" />
-            Go to My Library
+            Go to Dashboard
           </Link>
           <Link
             href="/search"

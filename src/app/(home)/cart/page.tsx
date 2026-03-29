@@ -35,7 +35,9 @@ export default function CartPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Shopping Cart</h1>
         <button
-          onClick={clearCart}
+          onClick={() => {
+            if (window.confirm("Remove all items from cart?")) clearCart();
+          }}
           className="text-sm text-muted-foreground hover:text-red-600"
         >
           Clear all
@@ -106,6 +108,7 @@ export default function CartPage() {
                         </span>
                         <button
                           onClick={() => removeItem(item.productId)}
+                          aria-label={`Remove ${item.name} from cart`}
                           className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
                         >
                           <Trash2 className="h-4 w-4" />

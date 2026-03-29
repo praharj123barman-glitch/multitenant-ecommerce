@@ -56,7 +56,8 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       setTitle("");
       setBody("");
       setError("");
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: [["reviews"]] });
+      queryClient.invalidateQueries({ queryKey: [["products", "getBySlug"]] });
     },
     onError: (err: { message: string }) => {
       setError(err.message);
@@ -84,7 +85,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       <div className="flex flex-col gap-8 md:flex-row">
         {/* Average score */}
         <div className="flex-shrink-0 text-center md:text-left">
-          <div className="text-5xl font-bold">{stats?.average || 0}</div>
+          <div className="text-5xl font-bold">{(stats?.average || 0).toFixed(1)}</div>
           <StarRating rating={Math.round(stats?.average || 0)} size="md" />
           <p className="mt-1 text-sm text-muted-foreground">
             {stats?.total || 0} review{(stats?.total || 0) !== 1 ? "s" : ""}

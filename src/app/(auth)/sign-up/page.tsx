@@ -17,7 +17,22 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
 
   const register = trpc.auth.register.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Auto-login after registration
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        if (res.ok) {
+          router.push("/dashboard");
+          router.refresh();
+          return;
+        }
+      } catch {
+        // Fall back to sign-in page
+      }
       router.push("/sign-in");
     },
     onError: (err: { message: string }) => {

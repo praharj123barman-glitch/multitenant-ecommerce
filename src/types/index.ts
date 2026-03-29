@@ -12,6 +12,7 @@ export interface ProductCategory {
 export interface ProductTenant {
   id: string;
   name: string;
+  slug: string;
 }
 
 export interface Product {
@@ -23,7 +24,7 @@ export interface Product {
   compareAtPrice: number | null;
   status: string;
   category: ProductCategory | null;
-  images: Array<ProductImage | null>;
+  images: ProductImage[];
   tenant: ProductTenant | null;
   averageRating: number;
   reviewCount: number;
@@ -53,5 +54,5 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: string;
+  role: "admin" | "seller" | "customer";
 }

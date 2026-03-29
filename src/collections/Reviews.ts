@@ -1,9 +1,26 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, Access } from "payload";
+
+const isAdmin: Access = ({ req: { user } }) => {
+  if (!user) return false;
+  return (user as Record<string, unknown>).role === "admin";
+};
+
+const isAdminOrAuthor: Access = ({ req: { user } }) => {
+  if (!user) return false;
+  if ((user as Record<string, unknown>).role === "admin") return true;
+  return { customer: { equals: user.id } };
+};
 
 export const Reviews: CollectionConfig = {
   slug: "reviews",
   admin: {
     useAsTitle: "id",
+  },
+  access: {
+    read: () => true, // public reviews
+    create: ({ req: { user } }) => !!user, // authenticated users
+    update: isAdminOrAuthor,
+    delete: isAdminOrAuthor,
   },
   fields: [
     {
@@ -39,6 +56,12 @@ export const Reviews: CollectionConfig = {
       name: "verified",
       type: "checkbox",
       defaultValue: false,
+      access: {
+        update: ({ req: { user } }) => {
+          if (!user) return false;
+          return (user as Record<string, unknown>).role === "admin";
+        },
+      },
       admin: {
         position: "sidebar",
         description: "Customer purchased this product",

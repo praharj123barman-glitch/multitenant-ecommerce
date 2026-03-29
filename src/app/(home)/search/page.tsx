@@ -20,9 +20,14 @@ function SearchContent() {
 
   const [searchInput, setSearchInput] = useState(query);
   const [showFilters, setShowFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
+  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
 
   const { data: rawCategories } = trpc.categories.getAll.useQuery();
   const categoriesList = (rawCategories || []) as unknown as Category[];
+
+  const minPriceParam = searchParams.get("minPrice");
+  const maxPriceParam = searchParams.get("maxPrice");
 
   const { data: rawProducts, isLoading: productsLoading } = trpc.products.list.useQuery({
     search: query || undefined,
@@ -30,6 +35,8 @@ function SearchContent() {
     sort: sortBy,
     page: currentPage,
     limit: 12,
+    minPrice: minPriceParam ? Number(minPriceParam) * 100 : undefined, // convert dollars to cents
+    maxPrice: maxPriceParam ? Number(maxPriceParam) * 100 : undefined,
   });
   const productsData = rawProducts as unknown as ProductListResult | undefined;
 
@@ -183,36 +190,28 @@ function SearchContent() {
               <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Price Range
+                    Price Range ($)
                   </h3>
                   <div className="flex items-center gap-3">
                     <input
                       type="number"
                       placeholder="Min"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      onBlur={() => updateSearch({ minPrice: minPrice })}
+                      onKeyDown={(e) => { if (e.key === "Enter") updateSearch({ minPrice: minPrice }); }}
                       className="w-full rounded-lg border px-3 py-2 text-sm focus:border-accent focus:outline-none"
                     />
                     <span className="text-muted-foreground">—</span>
                     <input
                       type="number"
                       placeholder="Max"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      onBlur={() => updateSearch({ maxPrice: maxPrice })}
+                      onKeyDown={(e) => { if (e.key === "Enter") updateSearch({ maxPrice: maxPrice }); }}
                       className="w-full rounded-lg border px-3 py-2 text-sm focus:border-accent focus:outline-none"
                     />
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Rating
-                  </h3>
-                  <div className="flex gap-2">
-                    {[4, 3, 2, 1].map((rating) => (
-                      <button
-                        key={rating}
-                        className="flex items-center gap-1 rounded-lg border px-3 py-2 text-sm transition-colors hover:border-accent hover:bg-accent/5"
-                      >
-                        {rating}+ ⭐
-                      </button>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -246,19 +245,43 @@ function SearchContent() {
                 Previous
               </button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: productsData.totalPages }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => updateSearch({ page: String(i + 1) })}
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                      currentPage === i + 1
-                        ? "bg-accent text-white"
-                        : "hover:bg-muted"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {(() => {
+                  const total = productsData.totalPages;
+                  const current = currentPage;
+                  const pages: (number | "ellipsis")[] = [];
+
+                  if (total <= 7) {
+                    for (let i = 1; i <= total; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (current > 3) pages.push("ellipsis");
+                    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+                      pages.push(i);
+                    }
+                    if (current < total - 2) pages.push("ellipsis");
+                    pages.push(total);
+                  }
+
+                  return pages.map((page, idx) =>
+                    page === "ellipsis" ? (
+                      <span key={`ellipsis-${idx}`} className="flex h-10 w-10 items-center justify-center text-sm text-muted-foreground">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => updateSearch({ page: String(page) })}
+                        className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === page
+                            ? "bg-accent text-white"
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  );
+                })()}
               </div>
               <button
                 onClick={() => updateSearch({ page: String(currentPage + 1) })}

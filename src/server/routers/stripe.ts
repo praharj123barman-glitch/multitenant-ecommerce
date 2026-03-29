@@ -121,39 +121,71 @@ export const stripeRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Cart is empty" });
       }
 
-      // Group items by tenant for split payments
-      const groupedByTenant: Record<string, { tenantDoc: Record<string, unknown>; products: Array<Record<string, unknown>> }> = {};
+      // Batch fetch all unique products and tenants to avoid N+1
+      const uniqueProductIds = [...new Set(input.items.map((i) => i.productId))];
+      const uniqueTenantIds = [...new Set(input.items.map((i) => i.tenantId))];
 
-      for (const item of input.items) {
-        // Fetch product
-        const product = await ctx.payload.findByID({
+      const [productsResult, tenantsResult] = await Promise.all([
+        ctx.payload.find({
           collection: "products",
-          id: item.productId,
+          where: { id: { in: uniqueProductIds } },
+          limit: uniqueProductIds.length,
           depth: 1,
-        });
-
-        // Fetch tenant
-        const tenant = await ctx.payload.findByID({
+        }),
+        ctx.payload.find({
           collection: "tenants",
-          id: item.tenantId,
+          where: { id: { in: uniqueTenantIds } },
+          limit: uniqueTenantIds.length,
           depth: 0,
-        });
+        }),
+      ]);
 
+      const productsMap = new Map(
+        productsResult.docs.map((doc) => [doc.id as string, doc])
+      );
+      const tenantsMap = new Map(
+        tenantsResult.docs.map((doc) => [doc.id as string, doc])
+      );
+
+      // Validate all tenants have Stripe setup
+      for (const tenantId of uniqueTenantIds) {
+        const tenant = tenantsMap.get(tenantId);
+        if (!tenant) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Store not found` });
+        }
         if (!tenant.stripeConnectId || !tenant.stripeOnboardingComplete) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: `Store "${tenant.name}" hasn't set up payments yet`,
           });
         }
+      }
+
+      // Group items by tenant for split payments
+      const groupedByTenant: Record<string, {
+        tenantDoc: Record<string, unknown>;
+        products: Array<Record<string, unknown>>;
+      }> = {};
+
+      for (const item of input.items) {
+        const product = productsMap.get(item.productId);
+        if (!product) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Product not found" });
+        }
 
         if (!groupedByTenant[item.tenantId]) {
-          groupedByTenant[item.tenantId] = { tenantDoc: tenant, products: [] };
+          groupedByTenant[item.tenantId] = {
+            tenantDoc: tenantsMap.get(item.tenantId)!,
+            products: [],
+          };
         }
         groupedByTenant[item.tenantId].products.push(product);
       }
 
-      // For simplicity, create one checkout session
-      // In production, you'd handle multi-seller split differently
+      const tenantIds = Object.keys(groupedByTenant);
+      const isSingleSeller = tenantIds.length === 1;
+
+      // Build line items
       const lineItems: Array<{
         price_data: {
           currency: string;
@@ -184,20 +216,13 @@ export const stripeRouter = createTRPCRouter({
         }
       }
 
-      const platformFee = Math.round(totalAmount * (PLATFORM_FEE_PERCENT / 100));
-
-      // Get first tenant's Connect account for payment (simplified)
-      const firstGroup = Object.values(groupedByTenant)[0];
-      const connectAccountId = firstGroup.tenantDoc.stripeConnectId as string;
-
-      // Create order in database
+      // Create order in database first
       const order = await ctx.payload.create({
         collection: "orders",
         data: {
           customer: ctx.user.id as string,
           items: input.items.map((item) => {
-            const group = groupedByTenant[item.tenantId];
-            const product = group.products.find((p) => (p.id as string) === item.productId)!;
+            const product = productsMap.get(item.productId)!;
             return {
               product: item.productId,
               tenant: item.tenantId,
@@ -209,36 +234,84 @@ export const stripeRouter = createTRPCRouter({
         },
       });
 
-      // Create Stripe Checkout Session with Connect
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: lineItems,
-        mode: "payment",
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
-        metadata: {
-          orderId: order.id as string,
-        },
-        payment_intent_data: {
-          application_fee_amount: platformFee,
-          transfer_data: {
-            destination: connectAccountId,
+      try {
+        // For single-seller carts: use Stripe Connect direct charge with transfer
+        // For multi-seller carts: use separate transfers after payment
+        const sessionConfig: Record<string, unknown> = {
+          payment_method_types: ["card"],
+          line_items: lineItems,
+          mode: "payment",
+          success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
+          metadata: {
+            orderId: order.id as string,
           },
-        },
-      });
+        };
 
-      // Save checkout session ID to order
-      await ctx.payload.update({
-        collection: "orders",
-        id: order.id as string,
-        data: { stripeCheckoutSessionId: session.id },
-      });
+        if (isSingleSeller) {
+          // Single seller: direct transfer
+          const connectAccountId = groupedByTenant[tenantIds[0]].tenantDoc.stripeConnectId as string;
+          const platformFee = Math.round(totalAmount * (PLATFORM_FEE_PERCENT / 100));
+          sessionConfig.payment_intent_data = {
+            application_fee_amount: platformFee,
+            transfer_data: {
+              destination: connectAccountId,
+            },
+          };
+        } else {
+          // Multi-seller: use transfer_group and create separate transfers in webhook
+          const transferGroup = `order_${order.id}`;
+          sessionConfig.payment_intent_data = {
+            transfer_group: transferGroup,
+          };
+          // Store transfer details in order metadata for webhook processing
+          sessionConfig.metadata = {
+            ...sessionConfig.metadata as Record<string, string>,
+            transferGroup,
+            sellerSplits: JSON.stringify(
+              tenantIds.map((tenantId) => {
+                const group = groupedByTenant[tenantId];
+                const sellerTotal = group.products.reduce(
+                  (sum, p) => sum + (p.price as number), 0
+                );
+                const sellerFee = Math.round(sellerTotal * (PLATFORM_FEE_PERCENT / 100));
+                return {
+                  tenantId,
+                  connectAccountId: group.tenantDoc.stripeConnectId as string,
+                  amount: sellerTotal - sellerFee,
+                };
+              })
+            ),
+          };
+        }
 
-      return { sessionId: session.id, url: session.url };
+        const session = await stripe.checkout.sessions.create(
+          sessionConfig as Parameters<typeof stripe.checkout.sessions.create>[0]
+        );
+
+        // Save checkout session ID to order
+        await ctx.payload.update({
+          collection: "orders",
+          id: order.id as string,
+          data: { stripeCheckoutSessionId: session.id },
+        });
+
+        return { sessionId: session.id, url: session.url };
+      } catch (err) {
+        // Clean up the pending order if Stripe fails
+        await ctx.payload.delete({
+          collection: "orders",
+          id: order.id as string,
+        });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create checkout session",
+        });
+      }
     }),
 });
 
-async function getUserTenant(ctx: { payload: { find: Function }; user: { id: unknown } }) {
+async function getUserTenant(ctx: { payload: { find: (...args: unknown[]) => Promise<{ docs: Record<string, unknown>[] }> }; user: { id: unknown } }) {
   const result = await ctx.payload.find({
     collection: "tenants",
     where: { owner: { equals: ctx.user.id } },

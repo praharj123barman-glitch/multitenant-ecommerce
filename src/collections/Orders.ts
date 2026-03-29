@@ -1,9 +1,27 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, Access } from "payload";
+
+const isAdmin: Access = ({ req: { user } }) => {
+  if (!user) return false;
+  return (user as Record<string, unknown>).role === "admin";
+};
+
+const isAdminOrCustomer: Access = ({ req: { user } }) => {
+  if (!user) return false;
+  if ((user as Record<string, unknown>).role === "admin") return true;
+  // Customers can only see their own orders
+  return { customer: { equals: user.id } };
+};
 
 export const Orders: CollectionConfig = {
   slug: "orders",
   admin: {
     useAsTitle: "id",
+  },
+  access: {
+    read: isAdminOrCustomer,
+    create: ({ req: { user } }) => !!user, // authenticated users
+    update: isAdmin, // only system/admin can update order status
+    delete: isAdmin,
   },
   fields: [
     {

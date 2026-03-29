@@ -88,11 +88,11 @@ export const authRouter = createTRPCRouter({
         secure: process.env.NODE_ENV === "production",
         path: "/",
         sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7, // 7 days
       });
 
       return {
         user: result.user,
-        token: result.token,
       };
     }),
 });

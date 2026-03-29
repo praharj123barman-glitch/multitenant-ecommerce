@@ -5,6 +5,21 @@ export const Categories: CollectionConfig = {
   admin: {
     useAsTitle: "name",
   },
+  access: {
+    read: () => true, // public categories
+    create: ({ req: { user } }) => {
+      if (!user) return false;
+      return (user as Record<string, unknown>).role === "admin";
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false;
+      return (user as Record<string, unknown>).role === "admin";
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false;
+      return (user as Record<string, unknown>).role === "admin";
+    },
+  },
   fields: [
     {
       name: "name",

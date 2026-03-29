@@ -1,4 +1,5 @@
 import { createTRPCRouter } from "../trpc/init";
+import { adminRouter } from "./admin";
 import { authRouter } from "./auth";
 import { categoriesRouter } from "./categories";
 import { productsRouter } from "./products";
@@ -7,6 +8,7 @@ import { stripeRouter } from "./stripe";
 import { reviewsRouter } from "./reviews";
 
 export const appRouter = createTRPCRouter({
+  admin: adminRouter,
   auth: authRouter,
   categories: categoriesRouter,
   products: productsRouter,

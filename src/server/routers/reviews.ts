@@ -34,12 +34,6 @@ export const reviewsRouter = createTRPCRouter({
   getStats: baseProcedure
     .input(z.object({ productId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const result = await ctx.payload.find({
-        collection: "reviews",
-        where: { product: { equals: input.productId } },
-        limit: 0,
-      });
-
       const allReviews = await ctx.payload.find({
         collection: "reviews",
         where: { product: { equals: input.productId } },
@@ -100,6 +94,7 @@ export const reviewsRouter = createTRPCRouter({
           customer: { equals: ctx.user.id },
           status: { equals: "paid" },
         },
+        limit: 500,
         depth: 0,
       });
 

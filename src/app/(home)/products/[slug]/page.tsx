@@ -108,6 +108,7 @@ export default function ProductPage({
                       prev === 0 ? product.images.length - 1 : prev - 1
                     )
                   }
+                  aria-label="Previous image"
                   className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-colors hover:bg-white"
                 >
                   <ChevronLeft className="h-5 w-5" />
@@ -118,6 +119,7 @@ export default function ProductPage({
                       prev === product.images.length - 1 ? 0 : prev + 1
                     )
                   }
+                  aria-label="Next image"
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-colors hover:bg-white"
                 >
                   <ChevronRight className="h-5 w-5" />
@@ -184,7 +186,7 @@ export default function ProductPage({
           {/* Seller */}
           {product.tenant && (
             <Link
-              href={`/store/${product.tenant.id}`}
+              href={`/store/${product.tenant.slug || product.tenant.id}`}
               className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
             >
               <Store className="h-4 w-4" />
@@ -260,10 +262,23 @@ export default function ProductPage({
               <ShoppingCart className="h-5 w-5" />
               {addedToCart ? "Added!" : "Add to Cart"}
             </button>
-            <button className="rounded-xl border p-3.5 transition-colors hover:bg-muted">
+            <button
+              aria-label="Add to wishlist"
+              className="rounded-xl border p-3.5 transition-colors hover:bg-muted"
+            >
               <Heart className="h-5 w-5" />
             </button>
-            <button className="rounded-xl border p-3.5 transition-colors hover:bg-muted">
+            <button
+              aria-label="Share product"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: product.name, url: window.location.href });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                }
+              }}
+              className="rounded-xl border p-3.5 transition-colors hover:bg-muted"
+            >
               <Share2 className="h-5 w-5" />
             </button>
           </div>

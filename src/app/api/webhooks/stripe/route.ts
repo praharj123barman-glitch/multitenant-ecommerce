@@ -11,19 +11,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No signature" }, { status: 400 });
   }
 
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not set — rejecting webhook");
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+  }
+
   let event;
 
   try {
-    if (process.env.STRIPE_WEBHOOK_SECRET) {
-      event = stripe.webhooks.constructEvent(
-        body,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
-    } else {
-      // In development without webhook secret, parse directly
-      event = JSON.parse(body);
-    }
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
@@ -37,6 +34,18 @@ export async function POST(req: Request) {
       const orderId = session.metadata?.orderId;
 
       if (orderId) {
+        // Idempotency: check if order is already paid
+        const order = await payload.findByID({
+          collection: "orders",
+          id: orderId,
+          depth: 0,
+        });
+
+        if ((order.status as string) === "paid") {
+          // Already processed — skip
+          break;
+        }
+
         // Update order status to paid
         await payload.update({
           collection: "orders",
@@ -48,21 +57,17 @@ export async function POST(req: Request) {
         });
 
         // Update product sales counts
-        const order = await payload.findByID({
-          collection: "orders",
-          id: orderId,
-          depth: 0,
-        });
-
         const items = order.items as Array<{ product: string }>;
         for (const item of items) {
           const productId = typeof item.product === "object"
             ? (item.product as Record<string, unknown>).id as string
             : item.product;
 
+          // Use a fresh read + update to minimize race window
           const product = await payload.findByID({
             collection: "products",
             id: productId,
+            depth: 0,
           });
 
           await payload.update({

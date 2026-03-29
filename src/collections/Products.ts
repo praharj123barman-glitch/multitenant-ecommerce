@@ -1,9 +1,24 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, Access } from "payload";
+
+const isAdminOrTenantOwner: Access = ({ req: { user } }) => {
+  if (!user) return false;
+  if ((user as Record<string, unknown>).role === "admin") return true;
+  // Sellers can only manage their own tenant's products
+  // This is enforced at the tRPC layer for granularity;
+  // at the Payload level we allow any seller to create but verify ownership in routers
+  return (user as Record<string, unknown>).role === "seller";
+};
 
 export const Products: CollectionConfig = {
   slug: "products",
   admin: {
     useAsTitle: "name",
+  },
+  access: {
+    read: () => true, // public product listings
+    create: isAdminOrTenantOwner,
+    update: isAdminOrTenantOwner,
+    delete: isAdminOrTenantOwner,
   },
   fields: [
     {

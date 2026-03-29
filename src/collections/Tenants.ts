@@ -1,9 +1,31 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, Access, FieldAccess } from "payload";
+
+const isAdmin: Access = ({ req: { user } }) => {
+  if (!user) return false;
+  return (user as Record<string, unknown>).role === "admin";
+};
+
+const isAdminOrOwner: Access = ({ req: { user } }) => {
+  if (!user) return false;
+  if ((user as Record<string, unknown>).role === "admin") return true;
+  return { owner: { equals: user.id } };
+};
+
+const isAdminField: FieldAccess = ({ req: { user } }) => {
+  if (!user) return false;
+  return (user as Record<string, unknown>).role === "admin";
+};
 
 export const Tenants: CollectionConfig = {
   slug: "tenants",
   admin: {
     useAsTitle: "name",
+  },
+  access: {
+    read: () => true, // public storefronts
+    create: ({ req: { user } }) => !!user, // any authenticated user
+    update: isAdminOrOwner,
+    delete: isAdmin,
   },
   fields: [
     {
@@ -48,6 +70,10 @@ export const Tenants: CollectionConfig = {
     {
       name: "stripeConnectId",
       type: "text",
+      access: {
+        read: isAdminField, // hide from public
+        update: isAdminField,
+      },
       admin: {
         position: "sidebar",
         description: "Stripe Connect account ID",
@@ -58,6 +84,10 @@ export const Tenants: CollectionConfig = {
       name: "stripeOnboardingComplete",
       type: "checkbox",
       defaultValue: false,
+      access: {
+        read: isAdminField,
+        update: isAdminField,
+      },
       admin: {
         position: "sidebar",
         readOnly: true,
@@ -76,6 +106,9 @@ export const Tenants: CollectionConfig = {
       name: "verified",
       type: "checkbox",
       defaultValue: false,
+      access: {
+        update: isAdminField, // only admins can verify
+      },
       admin: {
         position: "sidebar",
       },

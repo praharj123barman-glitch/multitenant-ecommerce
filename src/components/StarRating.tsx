@@ -22,24 +22,40 @@ export function StarRating({
   onChange,
 }: StarRatingProps) {
   return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          disabled={!interactive}
-          onClick={() => interactive && onChange?.(star)}
-          className={interactive ? "cursor-pointer transition-transform hover:scale-110" : "cursor-default"}
-        >
-          <Star
-            className={`${sizes[size]} ${
-              star <= rating
-                ? "fill-amber-400 text-amber-400"
-                : "fill-gray-200 text-gray-200"
-            }`}
-          />
-        </button>
-      ))}
+    <div
+      className="flex items-center gap-0.5"
+      role={interactive ? "radiogroup" : "img"}
+      aria-label={interactive ? "Select rating" : `Rated ${rating} out of 5 stars`}
+    >
+      {[1, 2, 3, 4, 5].map((star) =>
+        interactive ? (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange?.(star)}
+            className="cursor-pointer transition-transform hover:scale-110"
+            aria-label={`Rate ${star} star${star !== 1 ? "s" : ""}`}
+          >
+            <Star
+              className={`${sizes[size]} ${
+                star <= rating
+                  ? "fill-amber-400 text-amber-400"
+                  : "fill-gray-200 text-gray-200"
+              }`}
+            />
+          </button>
+        ) : (
+          <span key={star} className="cursor-default" aria-hidden="true">
+            <Star
+              className={`${sizes[size]} ${
+                star <= rating
+                  ? "fill-amber-400 text-amber-400"
+                  : "fill-gray-200 text-gray-200"
+              }`}
+            />
+          </span>
+        )
+      )}
     </div>
   );
 }

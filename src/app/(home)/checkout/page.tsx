@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useCart } from "@/hooks/use-cart";
 import { useTRPC } from "@/trpc/react";
-import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -28,23 +27,13 @@ export default function CheckoutPage() {
   const { data: rawSession } = trpc.auth.session.useQuery();
   const user = (rawSession as unknown as { user: SessionUser | null } | undefined)?.user;
 
-  const checkout = useMutation({
-    mutationFn: async (input: { items: { productId: string; tenantId: string }[] }) => {
-      const res = await fetch("/api/trpc/stripe.createCheckoutSession", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error.message);
-      return json.result?.data as { sessionId: string; url: string | null };
-    },
+  const checkout = trpc.stripe.createCheckoutSession.useMutation({
     onSuccess: (data) => {
       if (data?.url) {
         window.location.href = data.url;
       }
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       setCheckoutError(err.message);
     },
   });

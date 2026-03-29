@@ -163,11 +163,30 @@ export const productsRouter = createTRPCRouter({
         id: input.id,
       });
 
-      const tenantId = typeof existing.tenant === "object"
-        ? (existing.tenant as Record<string, unknown>).id
-        : existing.tenant;
+      const tenant = typeof existing.tenant === "object"
+        ? (existing.tenant as Record<string, unknown>)
+        : null;
+      const tenantOwnerId = tenant
+        ? (tenant.owner && typeof tenant.owner === "object"
+          ? (tenant.owner as Record<string, unknown>).id
+          : tenant.owner)
+        : null;
 
-      if (tenantId !== ctx.user.id) {
+      // If tenant wasn't populated, look it up
+      let ownerId = tenantOwnerId;
+      if (!ownerId) {
+        const tenantId = typeof existing.tenant === "object"
+          ? (existing.tenant as Record<string, unknown>).id as string
+          : existing.tenant as string;
+        const tenantDoc = await ctx.payload.findByID({
+          collection: "tenants",
+          id: tenantId,
+          depth: 0,
+        });
+        ownerId = tenantDoc.owner;
+      }
+
+      if (ownerId !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Not your product" });
       }
 
@@ -198,11 +217,20 @@ export const productsRouter = createTRPCRouter({
         id: input.id,
       });
 
+      // Look up tenant to verify ownership via owner field
       const tenantId = typeof existing.tenant === "object"
-        ? (existing.tenant as Record<string, unknown>).id
-        : existing.tenant;
+        ? (existing.tenant as Record<string, unknown>).id as string
+        : existing.tenant as string;
+      const tenantDoc = await ctx.payload.findByID({
+        collection: "tenants",
+        id: tenantId,
+        depth: 0,
+      });
+      const ownerId = typeof tenantDoc.owner === "object"
+        ? (tenantDoc.owner as Record<string, unknown>).id
+        : tenantDoc.owner;
 
-      if (tenantId !== ctx.user.id) {
+      if (ownerId !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Not your product" });
       }
 
@@ -216,9 +244,21 @@ export const productsRouter = createTRPCRouter({
 
   // Protected: get seller's own products
   myProducts: protectedProcedure.query(async ({ ctx }) => {
+    // First find the user's tenant
+    const tenantResult = await ctx.payload.find({
+      collection: "tenants",
+      where: { owner: { equals: ctx.user.id } },
+      limit: 1,
+      depth: 0,
+    });
+
+    if (tenantResult.docs.length === 0) {
+      return [];
+    }
+
     const result = await ctx.payload.find({
       collection: "products",
-      where: { tenant: { equals: ctx.user.id } },
+      where: { tenant: { equals: tenantResult.docs[0].id } },
       sort: "-createdAt",
       depth: 2,
     });
@@ -261,6 +301,7 @@ function formatProduct(doc: Record<string, unknown>) {
       ? {
           id: tenant.id as string,
           name: (tenant.name as string) || (tenant.email as string),
+          slug: (tenant.slug as string) || "",
         }
       : null,
     averageRating: (doc.averageRating as number) || 0,

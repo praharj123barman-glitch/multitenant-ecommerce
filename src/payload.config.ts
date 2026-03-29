@@ -24,9 +24,24 @@ export default buildConfig({
   },
   collections: [Users, Categories, Media, Products, Tenants, Orders, Reviews],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || "default-secret-change-me",
+  secret: (() => {
+    const secret = process.env.PAYLOAD_SECRET;
+    if (!secret || secret === "default-secret-change-me") {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("PAYLOAD_SECRET must be set in production");
+      }
+      return "dev-only-secret-change-in-production";
+    }
+    return secret;
+  })(),
   db: mongooseAdapter({
-    url: process.env.DATABASE_URI || "mongodb://localhost:27017/multitenant-ecommerce",
+    url: (() => {
+      const uri = process.env.DATABASE_URI;
+      if (!uri && process.env.NODE_ENV === "production") {
+        throw new Error("DATABASE_URI must be set in production");
+      }
+      return uri || "mongodb://localhost:27017/multitenant-ecommerce";
+    })(),
   }),
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
