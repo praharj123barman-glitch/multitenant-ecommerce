@@ -180,8 +180,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease }}
             className="mx-auto max-w-2xl text-center"
           >
@@ -200,8 +199,7 @@ export default function Home() {
           <motion.div
             variants={stagger}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
+            animate="visible"
             className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-6 md:gap-6"
           >
             {/* Big left card */}
@@ -304,8 +302,7 @@ export default function Home() {
           <div className="flex items-end justify-between">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease }}
             >
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">
@@ -326,8 +323,7 @@ export default function Home() {
           <motion.div
             variants={stagger}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
+            animate="visible"
             className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-4"
           >
             {categories.map((category, i) => (
@@ -363,8 +359,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease }}
             className="mx-auto max-w-2xl text-center"
           >
@@ -391,8 +386,7 @@ export default function Home() {
                 custom={i}
                 variants={fadeUp}
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
+                animate="visible"
                 className="glass-card relative overflow-hidden rounded-3xl p-8"
               >
                 <div className="flex items-center gap-4">
@@ -420,8 +414,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease }}
             className="hero-orbs glass-elevated relative overflow-hidden rounded-[2.5rem] px-8 py-24 text-center lg:px-16 lg:py-32"
           >
