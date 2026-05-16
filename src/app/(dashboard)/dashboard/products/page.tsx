@@ -2,8 +2,17 @@
 
 import { useTRPC } from "@/trpc/react";
 import Link from "next/link";
-import { Plus, Package, Loader2 } from "lucide-react";
+import { Plus, Package, Loader2, Star, MoreHorizontal } from "lucide-react";
 import type { Product } from "@/types";
+import { motion } from "framer-motion";
+
+const ease = [0.16, 1, 0.3, 1] as const;
+
+function statusPill(status?: string) {
+  if (status === "active") return "pill pill-success";
+  if (status === "draft") return "pill pill-warning";
+  return "pill pill-muted";
+}
 
 export default function DashboardProductsPage() {
   const trpc = useTRPC();
@@ -12,94 +21,134 @@ export default function DashboardProductsPage() {
   const products = (rawProducts || []) as unknown as Product[];
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Products</h1>
+    <div className="space-y-8">
+      <motion.header
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease }}
+        className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+      >
+        <div>
+          <p className="label-mono text-accent">Catalog</p>
+          <h1 className="display mt-3 text-4xl text-foreground sm:text-5xl">Products</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {products.length} {products.length === 1 ? "product" : "products"} in your store
+          </p>
+        </div>
         <Link
           href="/dashboard/products/new"
-          className="flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110"
+          className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm"
         >
           <Plus className="h-4 w-4" />
-          Add Product
+          New product
         </Link>
-      </div>
+      </motion.header>
 
       {isLoading ? (
         <div className="flex justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-accent" />
         </div>
       ) : products.length > 0 ? (
-        <div className="mt-6 overflow-hidden rounded-xl border bg-white">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-muted/30 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <th className="px-5 py-3">Product</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Price</th>
-                <th className="px-5 py-3">Sales</th>
-                <th className="px-5 py-3">Rating</th>
-                <th className="px-5 py-3">Created</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-muted/20">
-                  <td className="px-5 py-3.5">
-                    <Link
-                      href={`/products/${product.slug}`}
-                      className="font-medium hover:text-accent"
-                    >
-                      {product.name}
-                    </Link>
-                    {product.shortDescription && (
-                      <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">
-                        {product.shortDescription}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        product.status === "active"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : product.status === "draft"
-                          ? "bg-amber-50 text-amber-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {product.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 font-medium">
-                    ${(product.price / 100).toFixed(2)}
-                  </td>
-                  <td className="px-5 py-3.5">{product.salesCount || 0}</td>
-                  <td className="px-5 py-3.5">
-                    {product.averageRating ? `${product.averageRating} ★` : "—"}
-                  </td>
-                  <td className="px-5 py-3.5 text-sm text-muted-foreground">
-                    {new Date(product.createdAt).toLocaleDateString()}
-                  </td>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease, delay: 0.1 }}
+          className="glass-card overflow-hidden rounded-3xl"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--glass-border)" }}>
+                  <th className="label-mono px-6 py-4 text-left text-muted-foreground">Product</th>
+                  <th className="label-mono px-6 py-4 text-left text-muted-foreground">Status</th>
+                  <th className="label-mono px-6 py-4 text-left text-muted-foreground">Price</th>
+                  <th className="label-mono px-6 py-4 text-left text-muted-foreground">Sales</th>
+                  <th className="label-mono px-6 py-4 text-left text-muted-foreground">Rating</th>
+                  <th className="label-mono px-6 py-4 text-left text-muted-foreground">Created</th>
+                  <th className="w-8 px-6 py-4"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {products.map((product, i) => (
+                  <motion.tr
+                    key={product.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease, delay: 0.1 + i * 0.03 }}
+                    className="transition-colors hover:bg-white/[0.02]"
+                    style={{ borderBottom: "1px solid var(--glass-border)" }}
+                  >
+                    <td className="px-6 py-4">
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="text-sm font-medium text-foreground hover:text-accent"
+                      >
+                        {product.name}
+                      </Link>
+                      {product.shortDescription && (
+                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                          {product.shortDescription}
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={statusPill(product.status)}>
+                        {product.status || "—"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-foreground">
+                      ${(product.price / 100).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-foreground">
+                      {product.salesCount || 0}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-foreground">
+                      {product.averageRating ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-accent text-accent" />
+                          {product.averageRating.toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-xs text-muted-foreground">
+                      {new Date(product.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <button className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="More actions">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
       ) : (
-        <div className="mt-6 rounded-2xl border-2 border-dashed py-16 text-center">
-          <Package className="mx-auto h-12 w-12 text-muted-foreground/30" />
-          <h3 className="mt-4 font-semibold text-muted-foreground">No products yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Add your first product to start selling
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease, delay: 0.1 }}
+          className="glass-card rounded-3xl py-20 text-center"
+        >
+          <div className="glass-elevated mx-auto flex h-14 w-14 items-center justify-center rounded-2xl">
+            <Package className="h-6 w-6 text-accent" />
+          </div>
+          <p className="label-mono mt-7 text-accent">Empty catalog</p>
+          <h3 className="display mt-3 text-2xl text-foreground">No products yet</h3>
+          <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
+            Drop in your first digital product — files, pricing, descriptions. Customers can buy in seconds.
           </p>
           <Link
             href="/dashboard/products/new"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110"
+            className="btn-primary mt-7 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm"
           >
             <Plus className="h-4 w-4" />
-            Add Product
+            Add your first product
           </Link>
-        </div>
+        </motion.div>
       )}
     </div>
   );

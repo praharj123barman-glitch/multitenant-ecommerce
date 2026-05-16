@@ -1,7 +1,8 @@
 "use client";
 
 import { useTRPC } from "@/trpc/react";
-import { Loader2, ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, ExternalLink, CheckCircle, AlertCircle, Wallet, Store } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Tenant {
   id: string;
@@ -15,6 +16,8 @@ interface ConnectStatus {
   chargesEnabled?: boolean;
   payoutsEnabled?: boolean;
 }
+
+const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function DashboardSettingsPage() {
   const trpc = useTRPC();
@@ -56,51 +59,94 @@ export default function DashboardSettingsPage() {
   const isSettingUp = createAccount.isPending || getOnboarding.isPending;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <motion.header
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease }}
+      >
+        <p className="label-mono text-accent">Configuration</p>
+        <h1 className="display mt-3 text-4xl text-foreground">Settings</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Manage your store profile and payment integrations.
+        </p>
+      </motion.header>
 
       {/* Store info */}
       {tenant && (
-        <div className="mt-6 rounded-2xl border bg-white p-6">
-          <h2 className="font-semibold">Store Information</h2>
-          <div className="mt-4 space-y-3">
-            <div>
-              <span className="text-sm text-muted-foreground">Store Name</span>
-              <p className="font-medium">{tenant.name}</p>
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease, delay: 0.08 }}
+          className="glass-card rounded-3xl p-7"
+        >
+          <div className="flex items-start gap-4">
+            <div className="glass-elevated flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+              <Store className="h-4 w-4 text-accent" />
             </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Store URL</span>
-              <p className="font-medium">multimart.com/store/{tenant.slug}</p>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-foreground">Store Profile</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Your storefront identity. Visible to customers.
+              </p>
             </div>
           </div>
-        </div>
+
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <div>
+              <p className="label-mono text-muted-foreground">Store Name</p>
+              <p className="mt-2 text-sm font-medium text-foreground">{tenant.name}</p>
+            </div>
+            <div>
+              <p className="label-mono text-muted-foreground">Store URL</p>
+              <p className="mt-2 text-sm font-medium text-foreground">
+                multimart.com/store/<span className="text-accent">{tenant.slug}</span>
+              </p>
+            </div>
+          </div>
+        </motion.section>
       )}
 
       {/* Stripe Connect */}
-      <div className="mt-6 rounded-2xl border bg-white p-6">
-        <h2 className="font-semibold">Payment Settings</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Connect your Stripe account to receive payments from customers.
-        </p>
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease, delay: 0.15 }}
+        className="glass-card rounded-3xl p-7"
+      >
+        <div className="flex items-start gap-4">
+          <div className="glass-elevated flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+            <Wallet className="h-4 w-4 text-accent" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-foreground">Payment Settings</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Stripe Connect powers your payouts. Direct deposits, automatic tax handling.
+            </p>
+          </div>
+        </div>
 
         {statusLoading ? (
-          <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Checking status...
+          <div className="mt-6 flex items-center gap-2.5 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin text-accent" />
+            Checking Stripe status...
           </div>
         ) : connectStatus?.status === "complete" ? (
-          <div className="mt-4">
-            <div className="flex items-center gap-2 text-emerald-700">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-medium">Stripe Connected</span>
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="pill pill-success">
+                <CheckCircle className="h-3 w-3" />
+                Connected
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Charges {connectStatus.chargesEnabled ? "enabled" : "disabled"} · Payouts{" "}
+                {connectStatus.payoutsEnabled ? "enabled" : "disabled"}
+              </span>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Your account is fully set up. You can receive payments.
-            </p>
             <button
               onClick={() => getDashboard.mutate()}
               disabled={getDashboard.isPending}
-              className="mt-4 flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted"
+              className="btn-ghost inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
             >
               {getDashboard.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -111,18 +157,20 @@ export default function DashboardSettingsPage() {
             </button>
           </div>
         ) : connectStatus?.status === "incomplete" ? (
-          <div className="mt-4">
-            <div className="flex items-center gap-2 text-amber-700">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">Onboarding Incomplete</span>
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="pill pill-warning">
+                <AlertCircle className="h-3 w-3" />
+                Onboarding incomplete
+              </span>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Complete your Stripe onboarding to start receiving payments.
+            <p className="text-sm text-muted-foreground">
+              Finish your Stripe onboarding to start receiving payouts.
             </p>
             <button
               onClick={handleSetupStripe}
               disabled={isSettingUp}
-              className="mt-4 flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+              className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSettingUp ? (
                 <>
@@ -130,19 +178,25 @@ export default function DashboardSettingsPage() {
                   Redirecting...
                 </>
               ) : (
-                "Complete Onboarding"
+                "Complete onboarding"
               )}
             </button>
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="pill pill-muted">
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                Not connected
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground">
-              No Stripe account connected. Set up Stripe to start receiving payments.
+              Connect Stripe to start accepting customer payments.
             </p>
             <button
               onClick={handleSetupStripe}
               disabled={isSettingUp}
-              className="mt-4 flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-50"
+              className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSettingUp ? (
                 <>
@@ -155,7 +209,7 @@ export default function DashboardSettingsPage() {
             </button>
           </div>
         )}
-      </div>
+      </motion.section>
     </div>
   );
 }

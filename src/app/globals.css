@@ -494,3 +494,97 @@ input:focus, textarea:focus, select:focus {
 .fade-mask-x {
   mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
 }
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD TOKENS (Stitch Aether-style)
+   ═══════════════════════════════════════════════ */
+.label-mono {
+  font-family: ui-monospace, "JetBrains Mono", "Geist Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* 3D tilt + glow on hover (sparingly used for hero cards) */
+.hover-3d {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.hover-3d:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) scale(1.01);
+  border-color: rgba(34, 211, 238, 0.25);
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(34, 211, 238, 0.15);
+}
+
+/* Status pills (used by orders / products status indicators) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.pill-success { background: rgba(74, 222, 128, 0.12); color: #4ade80; }
+.pill-warning { background: rgba(251, 191, 36, 0.12); color: #fbbf24; }
+.pill-error   { background: rgba(248, 113, 113, 0.12); color: #f87171; }
+.pill-info    { background: rgba(34, 211, 238, 0.12); color: var(--accent); }
+.pill-muted   { background: rgba(255, 255, 255, 0.05); color: var(--muted-foreground); }
+
+/* Dashboard sidebar active nav link */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
+}
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--foreground);
+}
+.nav-link-active {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.12), rgba(59, 130, 246, 0.08));
+  color: var(--accent);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+.nav-link-active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 30%;
+  bottom: 30%;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* Subtle drift on big hero numbers */
+@keyframes drift-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.drift-up { animation: drift-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Light mode dashboard adjustments */
+.light .hover-3d:hover {
+  border-color: rgba(8, 145, 178, 0.3);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(8, 145, 178, 0.10);
+}
+.light .nav-link-active {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.1), rgba(37, 99, 235, 0.06));
+}
