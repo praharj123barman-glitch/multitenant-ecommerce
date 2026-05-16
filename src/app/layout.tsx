@@ -10,8 +10,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "MultiMart - Multi-Tenant E-Commerce",
-  description: "A multi-tenant e-commerce platform where creators sell digital products",
+  title: "MultiMart — The infrastructure for digital commerce",
+  description: "Launch your storefront, ship digital products, accept payments in minutes. Multi-tenant ecommerce built for creators.",
 };
 
 export default function RootLayout({
@@ -22,21 +22,20 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.className} h-full antialiased`} suppressHydrationWarning>
       <head>
-        {/* Prevent flash of wrong theme */}
+        {/* Dark is the brand. Only flip to .light if user chose it explicitly. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
                 const t = localStorage.getItem('multimart-theme');
-                if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                }
+                if (t === 'light') document.documentElement.classList.add('light');
               } catch {}
             `,
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col grain">
+        <div className="mesh-fixed" aria-hidden="true" />
         <ThemeProvider>
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </ThemeProvider>
