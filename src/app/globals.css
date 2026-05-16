@@ -38,42 +38,6 @@
 }
 
 /* ═══════════════════════════════════════════════
-   LIGHT THEME (Inverted, kept available for toggle)
-   ═══════════════════════════════════════════════ */
-.light {
-  --background: #fafafe;
-  --foreground: #0a0a1a;
-  --muted: #f0f0f8;
-  --muted-foreground: #5a5a78;
-  --border: #e4e4f0;
-  --border-strong: #d0d0e0;
-  --accent: #0891b2;
-  --accent-dark: #0e7490;
-  --accent-light: #22d3ee;
-  --accent-secondary: #2563eb;
-  --accent-tertiary: #7c3aed;
-  --card: #ffffff;
-  --card-foreground: #0a0a1a;
-  --surface: #f5f5fa;
-  --surface-raised: #ffffff;
-  --glow: rgba(8, 145, 178, 0.15);
-  --glow-blue: rgba(37, 99, 235, 0.12);
-  --glow-violet: rgba(124, 58, 237, 0.10);
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-strong: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-border-strong: rgba(0, 0, 0, 0.12);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 30px rgba(8, 145, 178, 0.15), 0 0 60px rgba(8, 145, 178, 0.05);
-  --shadow-glow-blue: 0 0 30px rgba(37, 99, 235, 0.12), 0 0 60px rgba(37, 99, 235, 0.04);
-  --scrollbar-track: #f0f0f8;
-  --scrollbar-thumb: #c8c8d8;
-  --scrollbar-hover: #a8a8c0;
-}
-
-/* ═══════════════════════════════════════════════
    TAILWIND THEME TOKENS
    ═══════════════════════════════════════════════ */
 @theme inline {
@@ -99,10 +63,6 @@
    ═══════════════════════════════════════════════ */
 html {
   color-scheme: dark;
-}
-.light html,
-html:has(.light) {
-  color-scheme: light;
 }
 
 body {
@@ -256,25 +216,6 @@ body {
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
 }
-/* Light mode: noise is too harsh on white — reduce or remove */
-.light .grain::after {
-  opacity: 0.025;
-  mix-blend-mode: multiply;
-}
-
-/* Light mode: mesh tweaks for visibility on white bg */
-.light .mesh-fixed {
-  background:
-    radial-gradient(ellipse 800px 600px at 10% -10%, rgba(8, 145, 178, 0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 700px 500px at 90% 30%, rgba(37, 99, 235, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 900px 700px at 50% 110%, rgba(124, 58, 237, 0.07) 0%, transparent 60%);
-  opacity: 0.7;
-}
-
-/* Light mode: orbs subtler */
-.light .hero-orbs::before { opacity: 0.4; }
-.light .hero-orbs::after { opacity: 0.35; }
-
 /* ═══════════════════════════════════════════════
    GRADIENT UTILITIES
    ═══════════════════════════════════════════════ */
@@ -403,16 +344,6 @@ body {
               inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
 }
 .btn-primary:active { transform: translateY(0); }
-/* Light mode: white text reads cleaner on the deeper teal accent */
-.light .btn-primary {
-  color: white;
-  box-shadow: 0 8px 24px -8px rgba(8, 145, 178, 0.45),
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
-}
-.light .btn-primary:hover {
-  box-shadow: 0 14px 32px -8px rgba(8, 145, 178, 0.6),
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
-}
 
 .btn-ghost {
   background: var(--glass-bg);
@@ -579,12 +510,3 @@ input:focus, textarea:focus, select:focus {
   to   { opacity: 1; transform: translateY(0); }
 }
 .drift-up { animation: drift-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-
-/* Light mode dashboard adjustments */
-.light .hover-3d:hover {
-  border-color: rgba(8, 145, 178, 0.3);
-  box-shadow: var(--shadow-lg), 0 0 30px rgba(8, 145, 178, 0.10);
-}
-.light .nav-link-active {
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.1), rgba(37, 99, 235, 0.06));
-}

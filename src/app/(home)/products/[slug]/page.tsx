@@ -17,8 +17,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Store,
+  Package,
+  Check,
 } from "lucide-react";
 import type { Product } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
+
+const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function ProductPage({
   params,
@@ -44,10 +49,17 @@ export default function ProductPage({
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold">Product not found</h1>
-        <Link href="/search" className="mt-4 inline-block text-accent hover:underline">
-          Browse products
+      <div className="mx-auto max-w-xl px-4 py-24 text-center">
+        <div className="glass-elevated mx-auto flex h-16 w-16 items-center justify-center rounded-3xl">
+          <Package className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <p className="label-mono mt-7 text-muted-foreground">404</p>
+        <h1 className="display mt-3 text-3xl text-foreground">Product not found</h1>
+        <Link
+          href="/search"
+          className="btn-primary mt-7 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm"
+        >
+          Browse marketplace
         </Link>
       </div>
     );
@@ -61,17 +73,14 @@ export default function ProductPage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
       {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+      <nav className="mb-6 flex items-center gap-2 text-xs text-muted-foreground">
         <Link href="/search" className="hover:text-foreground">
           Products
         </Link>
         <span>/</span>
         {product.category && (
           <>
-            <Link
-              href={`/categories/${product.category.slug}`}
-              className="hover:text-foreground"
-            >
+            <Link href={`/categories/${product.category.slug}`} className="hover:text-foreground">
               {product.category.name}
             </Link>
             <span>/</span>
@@ -82,22 +91,37 @@ export default function ProductPage({
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         {/* Left — Images */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease }}
+        >
           {/* Main image */}
-          <div className="relative aspect-square overflow-hidden rounded-2xl border bg-muted">
-            {product.images[selectedImage] ? (
-              <Image
-                src={(product.images[selectedImage] as { url: string }).url}
-                alt={product.name}
-                fill
-                className="object-cover"
-                priority
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-6xl text-muted-foreground/30">
-                📦
-              </div>
-            )}
+          <div className="glass-card relative aspect-square overflow-hidden rounded-3xl">
+            <AnimatePresence mode="wait">
+              {product.images[selectedImage] ? (
+                <motion.div
+                  key={selectedImage}
+                  initial={{ opacity: 0, scale: 1.02 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4, ease }}
+                  className="absolute inset-0"
+                >
+                  <Image
+                    src={(product.images[selectedImage] as { url: string }).url}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </motion.div>
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <Package className="h-16 w-16 text-muted-foreground/30" />
+                </div>
+              )}
+            </AnimatePresence>
 
             {/* Nav arrows */}
             {product.images.length > 1 && (
@@ -105,47 +129,47 @@ export default function ProductPage({
                 <button
                   onClick={() =>
                     setSelectedImage((prev) =>
-                      prev === 0 ? product.images.length - 1 : prev - 1
+                      prev === 0 ? product.images.length - 1 : prev - 1,
                     )
                   }
                   aria-label="Previous image"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-colors hover:bg-white"
+                  className="glass-elevated absolute left-3 top-1/2 -translate-y-1/2 rounded-full p-2.5 transition-all hover:border-accent"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-4 w-4 text-foreground" />
                 </button>
                 <button
                   onClick={() =>
                     setSelectedImage((prev) =>
-                      prev === product.images.length - 1 ? 0 : prev + 1
+                      prev === product.images.length - 1 ? 0 : prev + 1,
                     )
                   }
                   aria-label="Next image"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-colors hover:bg-white"
+                  className="glass-elevated absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2.5 transition-all hover:border-accent"
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-4 w-4 text-foreground" />
                 </button>
               </>
             )}
 
-            {/* Discount */}
+            {/* Discount badge */}
             {hasDiscount && (
-              <span className="absolute left-4 top-4 rounded-full bg-red-500 px-3 py-1.5 text-sm font-bold text-white">
-                -{discountPercent}% OFF
+              <span className="pill pill-error absolute left-4 top-4">
+                −{discountPercent}% OFF
               </span>
             )}
           </div>
 
           {/* Thumbnails */}
           {product.images.length > 1 && (
-            <div className="mt-4 flex gap-3 overflow-x-auto">
+            <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
               {product.images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
+                  className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 transition-all ${
                     selectedImage === i
-                      ? "border-accent shadow-md"
-                      : "border-transparent opacity-70 hover:opacity-100"
+                      ? "border-accent shadow-glow"
+                      : "border-transparent opacity-60 hover:opacity-100"
                   }`}
                 >
                   {img ? (
@@ -156,40 +180,42 @@ export default function ProductPage({
                       className="object-cover"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-muted text-lg">
-                      📦
+                    <div className="flex h-full items-center justify-center bg-surface">
+                      <Package className="h-5 w-5 text-muted-foreground/40" />
                     </div>
                   )}
                 </button>
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Right — Product info */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease, delay: 0.08 }}
+        >
           {/* Category */}
           {product.category && (
             <Link
               href={`/categories/${product.category.slug}`}
-              className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent hover:bg-accent/20"
+              className="glass-base inline-flex rounded-full px-3 py-1 text-[11px] font-medium text-accent transition-colors hover:border-accent"
             >
               {product.category.name}
             </Link>
           )}
 
           {/* Title */}
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">
-            {product.name}
-          </h1>
+          <h1 className="display mt-4 text-3xl text-foreground sm:text-4xl">{product.name}</h1>
 
           {/* Seller */}
           {product.tenant && (
             <Link
               href={`/store/${product.tenant.slug || product.tenant.id}`}
-              className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-accent"
             >
-              <Store className="h-4 w-4" />
+              <Store className="h-3.5 w-3.5" />
               {product.tenant.name}
             </Link>
           )}
@@ -200,29 +226,25 @@ export default function ProductPage({
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-4 w-4 ${
+                  className={`h-3.5 w-3.5 ${
                     i < Math.round(product.averageRating)
-                      ? "fill-amber-400 text-amber-400"
-                      : "fill-gray-200 text-gray-200"
+                      ? "fill-accent text-accent"
+                      : "text-muted-foreground/30"
                   }`}
                 />
               ))}
             </div>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {product.averageRating.toFixed(1)} ({product.reviewCount} reviews)
             </span>
-            <span className="text-sm text-muted-foreground">
-              · {product.salesCount} sales
-            </span>
+            <span className="text-xs text-muted-foreground">· {product.salesCount} sold</span>
           </div>
 
           {/* Price */}
           <div className="mt-6 flex items-baseline gap-3">
-            <span className="text-4xl font-bold">
-              ${(product.price / 100).toFixed(2)}
-            </span>
+            <span className="display text-5xl text-foreground">${(product.price / 100).toFixed(2)}</span>
             {hasDiscount && (
-              <span className="text-lg text-muted-foreground line-through">
+              <span className="text-base text-muted-foreground line-through">
                 ${(product.compareAtPrice! / 100).toFixed(2)}
               </span>
             )}
@@ -230,13 +252,13 @@ export default function ProductPage({
 
           {/* Description */}
           {product.shortDescription && (
-            <p className="mt-6 leading-relaxed text-muted-foreground">
+            <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
               {product.shortDescription}
             </p>
           )}
 
           {/* Actions */}
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex gap-2.5">
             <button
               onClick={() => {
                 if (!product) return;
@@ -253,65 +275,83 @@ export default function ProductPage({
                 setAddedToCart(true);
                 setTimeout(() => setAddedToCart(false), 2000);
               }}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:brightness-110 ${
+              className={`flex flex-1 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-all ${
                 addedToCart
-                  ? "bg-emerald-500 shadow-emerald-500/25"
-                  : "bg-gradient-to-r from-accent to-accent-dark shadow-accent/25"
+                  ? "bg-emerald-500/20 text-emerald-300"
+                  : "btn-primary"
               }`}
             >
-              <ShoppingCart className="h-5 w-5" />
-              {addedToCart ? "Added!" : "Add to Cart"}
+              {addedToCart ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Added to cart
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  Add to cart
+                </>
+              )}
             </button>
             <button
               aria-label="Add to wishlist"
-              className="rounded-xl border p-3.5 transition-colors hover:bg-muted"
+              className="btn-ghost flex h-12 w-12 items-center justify-center rounded-full"
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-4 w-4" />
             </button>
             <button
               aria-label="Share product"
               onClick={() => {
-                if (navigator.share) {
+                if (typeof navigator !== "undefined" && navigator.share) {
                   navigator.share({ title: product.name, url: window.location.href });
-                } else {
+                } else if (typeof navigator !== "undefined") {
                   navigator.clipboard.writeText(window.location.href);
                 }
               }}
-              className="rounded-xl border p-3.5 transition-colors hover:bg-muted"
+              className="btn-ghost flex h-12 w-12 items-center justify-center rounded-full"
             >
-              <Share2 className="h-5 w-5" />
+              <Share2 className="h-4 w-4" />
             </button>
           </div>
 
           {/* Trust badges */}
-          <div className="mt-8 grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-4">
-              <Download className="h-5 w-5 text-accent" />
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            <div className="glass-base flex items-center gap-3 rounded-2xl p-4">
+              <div className="glass-elevated flex h-9 w-9 items-center justify-center rounded-xl">
+                <Download className="h-4 w-4 text-accent" />
+              </div>
               <div>
-                <p className="text-sm font-medium">Instant Download</p>
-                <p className="text-xs text-muted-foreground">
-                  Get it right after purchase
-                </p>
+                <p className="text-xs font-semibold text-foreground">Instant delivery</p>
+                <p className="text-[11px] text-muted-foreground">Right after purchase</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-4">
-              <Shield className="h-5 w-5 text-accent" />
+            <div className="glass-base flex items-center gap-3 rounded-2xl p-4">
+              <div className="glass-elevated flex h-9 w-9 items-center justify-center rounded-xl">
+                <Shield className="h-4 w-4 text-accent" />
+              </div>
               <div>
-                <p className="text-sm font-medium">Secure Payment</p>
-                <p className="text-xs text-muted-foreground">
-                  Powered by Stripe
-                </p>
+                <p className="text-xs font-semibold text-foreground">Secure payment</p>
+                <p className="text-[11px] text-muted-foreground">Powered by Stripe</p>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Reviews */}
-      <section className="mt-16 border-t pt-12">
-        <h2 className="mb-6 text-2xl font-bold">Customer Reviews</h2>
-        <ReviewSection productId={product.id} />
-      </section>
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease, delay: 0.2 }}
+        className="mt-16 border-t pt-12"
+        style={{ borderColor: "var(--glass-border)" }}
+      >
+        <p className="label-mono text-accent">Reviews</p>
+        <h2 className="display mt-3 text-2xl text-foreground">What customers say</h2>
+        <div className="mt-6">
+          <ReviewSection productId={product.id} />
+        </div>
+      </motion.section>
     </div>
   );
 }

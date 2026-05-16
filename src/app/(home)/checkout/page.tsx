@@ -12,8 +12,14 @@ import {
   Shield,
   Loader2,
   ShoppingBag,
+  Package,
+  AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import type { SessionUser } from "@/types";
+import { motion } from "framer-motion";
+
+const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function CheckoutPage() {
   const { items, getTotal } = useCart();
@@ -50,94 +56,135 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-24 text-center lg:px-8">
-        <ShoppingBag className="mx-auto h-16 w-16 text-muted-foreground/30" />
-        <h1 className="mt-6 text-2xl font-bold">Nothing to checkout</h1>
-        <p className="mt-2 text-muted-foreground">Add items to your cart first</p>
-        <Link
-          href="/search"
-          className="mt-6 inline-block rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white hover:brightness-110"
-        >
-          Browse Products
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease }}
+        className="mx-auto max-w-xl px-4 py-24 text-center lg:px-8"
+      >
+        <div className="glass-elevated mx-auto flex h-16 w-16 items-center justify-center rounded-3xl">
+          <ShoppingBag className="h-7 w-7 text-accent" />
+        </div>
+        <p className="label-mono mt-8 text-accent">No items</p>
+        <h1 className="display mt-3 text-3xl text-foreground">Nothing to checkout</h1>
+        <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
+          Add items to your cart first, then come back here to complete your purchase.
+        </p>
+        <Link href="/search" className="btn-primary mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm">
+          Browse marketplace
         </Link>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 lg:px-8">
+    <div className="mx-auto max-w-5xl px-4 py-12 lg:px-8">
       <Link
         href="/cart"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-3.5 w-3.5" />
         Back to cart
       </Link>
 
-      <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
+      <motion.header
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease }}
+      >
+        <p className="label-mono text-accent">Final step</p>
+        <h1 className="display mt-3 text-4xl text-foreground sm:text-5xl">Checkout</h1>
+      </motion.header>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-5">
         {/* Left — checkout form */}
-        <div className="lg:col-span-3">
-          {/* Auth check */}
+        <div className="space-y-6 lg:col-span-3">
           {!user ? (
-            <div className="rounded-2xl border bg-white p-6">
-              <h2 className="text-lg font-bold">Sign in to continue</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                You need an account to complete your purchase
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease, delay: 0.1 }}
+              className="glass-card rounded-3xl p-7"
+            >
+              <p className="label-mono text-accent">Account required</p>
+              <h2 className="mt-2 text-lg font-semibold text-foreground">Sign in to continue</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                You need an account to complete your purchase and receive your files.
               </p>
-              <div className="mt-4 flex gap-3">
+              <div className="mt-5 flex flex-wrap gap-2">
                 <Link
                   href="/sign-in"
-                  className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110"
+                  className="btn-primary rounded-full px-5 py-2.5 text-sm"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="rounded-lg border px-5 py-2.5 text-sm font-semibold hover:bg-muted"
+                  className="btn-ghost rounded-full px-5 py-2.5 text-sm font-medium"
                 >
                   Create account
                 </Link>
               </div>
-            </div>
+            </motion.div>
           ) : (
-            <div className="space-y-6">
+            <>
               {/* Account info */}
-              <div className="rounded-2xl border bg-white p-6">
-                <h2 className="text-lg font-bold">Account</h2>
-                <div className="mt-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent to-pink-500 text-sm font-bold text-white">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease, delay: 0.1 }}
+                className="glass-card rounded-3xl p-7"
+              >
+                <p className="label-mono text-accent">Account</p>
+                <h2 className="mt-2 text-lg font-semibold text-foreground">Buyer info</h2>
+
+                <div className="mt-5 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full accent-gradient text-sm font-bold text-background shadow-glow">
                     {user.email[0]?.toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-sm font-medium text-foreground">{user.name}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Payment */}
-              <div className="rounded-2xl border bg-white p-6">
-                <h2 className="flex items-center gap-2 text-lg font-bold">
-                  <CreditCard className="h-5 w-5" />
-                  Payment
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  You&apos;ll be redirected to Stripe&apos;s secure checkout to complete
-                  your payment.
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease, delay: 0.18 }}
+                className="glass-card rounded-3xl p-7"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="glass-elevated flex h-10 w-10 items-center justify-center rounded-xl">
+                    <CreditCard className="h-4 w-4 text-accent" />
+                  </div>
+                  <div>
+                    <p className="label-mono text-accent">Payment</p>
+                    <h2 className="mt-0.5 text-lg font-semibold text-foreground">Pay with Stripe</h2>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  You&apos;ll be redirected to Stripe&apos;s secure checkout to complete payment. Files deliver instantly after.
                 </p>
 
                 {checkoutError && (
-                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {checkoutError}
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-5 flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+                    role="alert"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{checkoutError}</span>
+                  </motion.div>
                 )}
 
                 <button
                   onClick={handleCheckout}
                   disabled={checkout.isPending}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-dark px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-accent/25 transition-all hover:shadow-xl hover:brightness-110 disabled:opacity-50"
+                  className="btn-primary mt-6 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {checkout.isPending ? (
                     <>
@@ -152,70 +199,84 @@ export default function CheckoutPage() {
                   )}
                 </button>
 
-                <div className="mt-4 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                <div className="mt-5 flex items-center justify-center gap-3 text-[11px] text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <Shield className="h-3.5 w-3.5" />
+                    <Shield className="h-3 w-3 text-accent" />
                     SSL Encrypted
                   </span>
                   <span>·</span>
-                  <span>Powered by Stripe</span>
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-accent" />
+                    Powered by Stripe
+                  </span>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </>
           )}
         </div>
 
         {/* Right — order summary */}
-        <div className="lg:col-span-2">
-          <div className="sticky top-24 rounded-2xl border bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold">
-              Order ({items.length} item{items.length !== 1 ? "s" : ""})
+        <motion.aside
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease, delay: 0.15 }}
+          className="lg:col-span-2"
+        >
+          <div className="glass-card sticky top-24 rounded-3xl p-6">
+            <p className="label-mono text-accent">Order</p>
+            <h2 className="mt-2 text-lg font-semibold text-foreground">
+              {items.length} {items.length === 1 ? "item" : "items"}
             </h2>
 
-            <div className="mt-4 divide-y">
+            <div className="mt-5 divide-y" style={{ borderColor: "var(--glass-border)" }}>
               {items.map((item) => (
-                <div key={item.productId} className="flex items-center gap-3 py-3">
-                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+                <div
+                  key={item.productId}
+                  className="flex items-center gap-3 py-3"
+                  style={{ borderColor: "var(--glass-border)" }}
+                >
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-surface">
                     {item.image ? (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
+                      <Image src={item.image} alt={item.name} fill className="object-cover" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-lg">
-                        📦
+                      <div className="flex h-full items-center justify-center">
+                        <Package className="h-4 w-4 text-muted-foreground/40" />
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium line-clamp-1">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.tenantName}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-1 text-sm font-medium text-foreground">{item.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{item.tenantName}</p>
                   </div>
-                  <span className="text-sm font-semibold">
+                  <span className="text-sm font-semibold text-foreground">
                     ${(item.price / 100).toFixed(2)}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 space-y-2 border-t pt-4">
-              <div className="flex justify-between text-sm">
+            <div
+              className="mt-5 space-y-2 border-t pt-4 text-sm"
+              style={{ borderColor: "var(--glass-border)" }}
+            >
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${(total / 100).toFixed(2)}</span>
+                <span className="text-foreground">${(total / 100).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">Platform fee (5%)</span>
-                <span>${(platformFee / 100).toFixed(2)}</span>
+                <span className="text-foreground">${(platformFee / 100).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between border-t pt-2 text-lg font-bold">
-                <span>Total</span>
-                <span>${(grandTotal / 100).toFixed(2)}</span>
+              <div
+                className="flex justify-between border-t pt-3"
+                style={{ borderColor: "var(--glass-border)" }}
+              >
+                <span className="font-semibold text-foreground">Total</span>
+                <span className="display text-2xl text-foreground">${(grandTotal / 100).toFixed(2)}</span>
               </div>
             </div>
           </div>
-        </div>
+        </motion.aside>
       </div>
     </div>
   );

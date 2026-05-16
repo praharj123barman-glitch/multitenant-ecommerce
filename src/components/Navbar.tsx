@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useTRPC } from "@/trpc/react";
 import type { SessionUser } from "@/types";
 import { useCart } from "@/hooks/use-cart";
-import { ThemeToggle } from "./ThemeToggle";
 import { ShoppingCart, Search, Menu, X, User, LogOut, LayoutDashboard, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -114,8 +113,6 @@ export function Navbar() {
 
           {/* Right */}
           <div className="flex items-center gap-1 pr-1">
-            <ThemeToggle />
-
             <Link
               href="/cart"
               className="relative rounded-full p-2.5 text-muted-foreground transition-all hover:bg-muted hover:text-foreground"

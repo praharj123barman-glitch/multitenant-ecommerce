@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
-import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -20,25 +19,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.className} h-full antialiased`} suppressHydrationWarning>
-      <head>
-        {/* Dark is the brand. Only flip to .light if user chose it explicitly. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const t = localStorage.getItem('multimart-theme');
-                if (t === 'light') document.documentElement.classList.add('light');
-              } catch {}
-            `,
-          }}
-        />
-      </head>
+    <html lang="en" className={`${dmSans.className} h-full antialiased dark`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col grain">
         <div className="mesh-fixed" aria-hidden="true" />
-        <ThemeProvider>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-        </ThemeProvider>
+        <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
   );

@@ -10,10 +10,13 @@ import {
   Globe,
   ExternalLink,
   Package,
+  Store as StoreIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ProductCard } from "@/components/ProductCard";
 import type { Product } from "@/types";
+
+const ease = [0.16, 1, 0.3, 1] as const;
 
 interface Tenant {
   id: string;
@@ -50,12 +53,10 @@ export default function StorefrontPage({
   const { data: rawTenant, isLoading: tenantLoading } = trpc.tenants.getBySlug.useQuery({ slug });
   const tenant = rawTenant as unknown as Tenant | null;
 
-  const { data: rawProducts, isLoading: productsLoading } = trpc.products.list.useQuery({
-    tenantId: tenant?.id,
-    limit: 20,
-  }, {
-    enabled: !!tenant?.id,
-  });
+  const { data: rawProducts, isLoading: productsLoading } = trpc.products.list.useQuery(
+    { tenantId: tenant?.id, limit: 20 },
+    { enabled: !!tenant?.id },
+  );
   const productsData = rawProducts as unknown as ProductListResult | undefined;
 
   if (tenantLoading) {
@@ -68,12 +69,19 @@ export default function StorefrontPage({
 
   if (!tenant) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold">Store not found</h1>
-        <p className="mt-2 text-muted-foreground">
+      <div className="mx-auto max-w-xl px-4 py-24 text-center">
+        <div className="glass-elevated mx-auto flex h-16 w-16 items-center justify-center rounded-3xl">
+          <StoreIcon className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <p className="label-mono mt-7 text-muted-foreground">404</p>
+        <h1 className="display mt-3 text-3xl text-foreground">Store not found</h1>
+        <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
           This store doesn&apos;t exist or has been removed.
         </p>
-        <Link href="/" className="mt-4 inline-block text-accent hover:underline">
+        <Link
+          href="/"
+          className="btn-primary mt-7 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm"
+        >
           Back to home
         </Link>
       </div>
@@ -81,26 +89,38 @@ export default function StorefrontPage({
   }
 
   return (
-    <div>
-      {/* Banner */}
-      <div className="relative h-48 bg-gradient-to-r from-accent via-accent-dark to-purple-700 md:h-64">
-        {tenant.banner && (
-          <Image
-            src={tenant.banner.url}
-            alt={tenant.banner.alt || tenant.name}
-            fill
-            className="object-cover"
-          />
+    <div className="hero-orbs">
+      {/* Banner with cyan-blue gradient if no banner image */}
+      <div className="relative h-48 overflow-hidden md:h-72">
+        {tenant.banner ? (
+          <>
+            <Image
+              src={tenant.banner.url}
+              alt={tenant.banner.alt || tenant.name}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          </>
+        ) : (
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 accent-gradient opacity-30" />
+            <div className="absolute inset-0 grid-pattern opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+          </div>
         )}
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
       </div>
 
-      {/* Store info */}
+      {/* Store header */}
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="relative -mt-16 mb-8 flex flex-col items-start gap-6 md:flex-row md:items-end">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease }}
+          className="relative -mt-20 mb-12 flex flex-col items-start gap-6 md:flex-row md:items-end"
+        >
           {/* Logo */}
-          <div className="relative h-28 w-28 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg">
+          <div className="glass-elevated relative h-28 w-28 overflow-hidden rounded-3xl shadow-glow">
             {tenant.logo ? (
               <Image
                 src={tenant.logo.url}
@@ -109,38 +129,39 @@ export default function StorefrontPage({
                 className="object-cover"
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-accent to-pink-500 text-3xl font-bold text-white">
+              <div className="flex h-full items-center justify-center accent-gradient text-3xl font-bold text-background">
                 {tenant.name[0]?.toUpperCase()}
               </div>
             )}
           </div>
 
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold">{tenant.name}</h1>
+            <p className="label-mono text-accent">Storefront</p>
+            <div className="mt-2 flex items-center gap-2">
+              <h1 className="display text-3xl text-foreground sm:text-4xl">{tenant.name}</h1>
               {tenant.verified && (
-                <BadgeCheck className="h-5 w-5 text-accent" />
+                <BadgeCheck className="h-5 w-5 text-accent" aria-label="Verified store" />
               )}
             </div>
             {tenant.description && (
-              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                 {tenant.description}
               </p>
             )}
 
             {/* Social links */}
             {tenant.socialLinks && (
-              <div className="mt-3 flex items-center gap-3">
+              <div className="mt-4 flex items-center gap-3">
                 {tenant.socialLinks.website && (
                   <a
                     href={tenant.socialLinks.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    className="glass-base flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] text-foreground transition-colors hover:border-accent"
                   >
-                    <Globe className="h-3.5 w-3.5" />
+                    <Globe className="h-3 w-3" />
                     Website
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                 )}
                 {tenant.socialLinks.twitter && (
@@ -148,7 +169,7 @@ export default function StorefrontPage({
                     href={`https://twitter.com/${tenant.socialLinks.twitter}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-foreground"
+                    className="glass-base rounded-full px-3 py-1.5 text-[11px] text-foreground transition-colors hover:border-accent"
                   >
                     @{tenant.socialLinks.twitter}
                   </a>
@@ -157,17 +178,25 @@ export default function StorefrontPage({
             )}
           </div>
 
-          {/* Product count */}
-          <div className="rounded-xl border bg-white px-5 py-3 text-center shadow-sm">
-            <div className="text-2xl font-bold">{productsData?.totalDocs || 0}</div>
-            <div className="text-xs text-muted-foreground">Products</div>
+          {/* Product count card */}
+          <div className="glass-card rounded-2xl px-5 py-4 text-center">
+            <div className="display text-2xl text-foreground">{productsData?.totalDocs || 0}</div>
+            <div className="label-mono mt-1 text-muted-foreground">Products</div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Products */}
-        <section className="pb-16">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Products</h2>
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease, delay: 0.1 }}
+          className="pb-20"
+        >
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <p className="label-mono text-accent">Catalog</p>
+              <h2 className="mt-2 text-xl font-semibold text-foreground">All products</h2>
+            </div>
           </div>
 
           {productsLoading ? (
@@ -175,27 +204,24 @@ export default function StorefrontPage({
               <Loader2 className="h-6 w-6 animate-spin text-accent" />
             </div>
           ) : productsData && productsData.products.length > 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            >
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {productsData.products.map((product, i) => (
                 <ProductCard key={product.id} product={product} index={i} />
               ))}
-            </motion.div>
+            </div>
           ) : (
-            <div className="rounded-2xl border-2 border-dashed border-border bg-muted/30 px-8 py-16 text-center">
-              <Package className="mx-auto h-12 w-12 text-muted-foreground/40" />
-              <h3 className="mt-4 text-lg font-semibold text-muted-foreground">
-                No products yet
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                This store hasn&apos;t added any products yet.
+            <div className="glass-card rounded-3xl py-16 text-center">
+              <div className="glass-elevated mx-auto flex h-12 w-12 items-center justify-center rounded-2xl">
+                <Package className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="label-mono mt-6 text-muted-foreground">Empty store</p>
+              <h3 className="mt-3 text-lg font-semibold text-foreground">No products yet</h3>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                This store hasn&apos;t added any products yet. Check back soon.
               </p>
             </div>
           )}
-        </section>
+        </motion.section>
       </div>
     </div>
   );
