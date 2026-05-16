@@ -256,6 +256,24 @@ body {
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
 }
+/* Light mode: noise is too harsh on white — reduce or remove */
+.light .grain::after {
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+}
+
+/* Light mode: mesh tweaks for visibility on white bg */
+.light .mesh-fixed {
+  background:
+    radial-gradient(ellipse 800px 600px at 10% -10%, rgba(8, 145, 178, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 500px at 90% 30%, rgba(37, 99, 235, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 900px 700px at 50% 110%, rgba(124, 58, 237, 0.07) 0%, transparent 60%);
+  opacity: 0.7;
+}
+
+/* Light mode: orbs subtler */
+.light .hero-orbs::before { opacity: 0.4; }
+.light .hero-orbs::after { opacity: 0.35; }
 
 /* ═══════════════════════════════════════════════
    GRADIENT UTILITIES
@@ -372,7 +390,7 @@ body {
 .btn-primary {
   position: relative;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-  color: var(--background);
+  color: #06060f;  /* always dark text for contrast on cyan-blue gradient */
   font-weight: 600;
   box-shadow: 0 8px 24px -8px rgba(34, 211, 238, 0.5),
               inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
@@ -385,6 +403,16 @@ body {
               inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
 }
 .btn-primary:active { transform: translateY(0); }
+/* Light mode: white text reads cleaner on the deeper teal accent */
+.light .btn-primary {
+  color: white;
+  box-shadow: 0 8px 24px -8px rgba(8, 145, 178, 0.45),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+}
+.light .btn-primary:hover {
+  box-shadow: 0 14px 32px -8px rgba(8, 145, 178, 0.6),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+}
 
 .btn-ghost {
   background: var(--glass-bg);
